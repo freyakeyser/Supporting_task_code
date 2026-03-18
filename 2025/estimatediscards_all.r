@@ -41,7 +41,7 @@ obs_metadata(direct=paste0(direct, "data"), # where do you want the data to be s
              polys=fleet, # specify the fleet (inshore or offshore or both)
              checkspatial=TRUE) # do you want to run spatial checks? If TRUE, produces PDF images and also additional CSV files.
 
-obs.trips <- read.table(paste0(direct, "data/Observed scallop trip metadata_", fleet, "_2025-10-23.csv",sep=""), sep=",",header=T,stringsAsFactors = F)
+obs.trips <- read.table(paste0(direct, "data/Observed scallop trip metadata_", fleet, "_2026-03-13.csv",sep=""), sep=",",header=T,stringsAsFactors = F)
 
 ### tidy up the observer metadata
 names(obs.trips) <- c("X", "trip", "vrnum", "date.sailed", "date.land", "latitude", "longitude", "comarea_id", "set_no")
@@ -266,6 +266,15 @@ for (i in 1:length(years)) {
 
 tail(hooks, 20)
 
+####write.csv(discards, "C:/Users/keyserf/Documents/temp_data/2025discards.csv")
+#discards<-read.csv("C:/Users/keyserf/Documents/temp_data/2025discards.csv")
+#discards <- select(discards, -X)
+#names(discards)[which(names(discards) %in% c("SUM.EST_DISCARD_WT.", "SUM.EST_KEPT_WT."))] <- c("SUM(EST_DISCARD_WT)", "SUM(EST_KEPT_WT)")
+
+####write.csv(hooks, "C:/Users/keyserf/Documents/temp_data/2025hooks.csv")
+#hooks <- read.csv("C:/Users/keyserf/Documents/temp_data/2025hooks.csv")
+#hooks <- select(hooks, -X)
+
 nahooks <- unique(hooks[is.na(hooks$TOTAL_HOOKS),c("TRIP", "SET_NO")])
 nahooks$remove <- "bad"
 
@@ -323,7 +332,7 @@ if(fleet=="inshore"){
 # head(discards)
 
 # join the spatially checked obs_metadata stuff to assign bank to comarea_ids
-set_coord <- read.csv(paste0(direct, "data/Observed scallop trip metadata_tidysets_2025-10-23.csv"))
+set_coord <- read.csv(paste0(direct, "data/Observed scallop trip metadata_tidysets_2026-03-11.csv"))
 
 # do the manual edits from bycatchreport_7.R as needed
 # I.e. review Spatial checks.pdf and remove sets that are outside of your desired area. 

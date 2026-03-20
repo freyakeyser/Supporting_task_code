@@ -115,16 +115,16 @@ if(fleet=="offshore"){
     
     if(unique(year(obs$date.sailed)) < 2009) {
       vesid <- vessel[vessel$ID == unique(obs$vrnum),]$Pre_2008_ID
-      vrnum <- old.log.dat[old.log.dat$vesid == vesid,]
-      aftersail <- vrnum[(vrnum$date > unique(obs$date.sailed)) | (vrnum$date == unique(obs$date.sailed)),]
-      beforeland <- aftersail[(aftersail$date < unique(obs$date.land)) | (aftersail$date == unique(obs$date.land)),] 
+      vrnum <- old.log.dat[old.log.dat$vesid %in% vesid,]
+      aftersail <- vrnum[(vrnum$date > unique(obs$date.sailed)),]
+      beforeland <- aftersail[(aftersail$date < unique(obs$date.land)),] 
       trip.id <- as.character(unique(beforeland$trip.id))
     }
     
     if(unique(year(obs$date.sailed)) > 2008) {
       vrnum <- new.log.dat[new.log.dat$vrnum == unique(obs$vrnum),]
-      aftersail <- vrnum[(vrnum$fished > unique(obs$date.sailed)) | (vrnum$fished == unique(obs$date.sailed)),]
-      beforeland <- aftersail[(aftersail$fished < unique(obs$date.land)) | (aftersail$fished == unique(obs$date.land)),] 
+      aftersail <- vrnum[(vrnum$fished > unique(obs$date.sailed)),]
+      beforeland <- aftersail[(aftersail$fished < unique(obs$date.land)),] 
       trip.id <- as.character(unique(beforeland$trip.id))
     }
     
@@ -133,18 +133,125 @@ if(fleet=="offshore"){
     }
     
     if(length(trip.id) ==0){
-      message("This TRIP ID does not have a matching log record:")
-      print(unique(select(obs, trip, vrnum, date.sailed, date.land, comarea_id)))
+      
+      if(unique(year(obs$date.sailed)) < 2009) {
+        vesid <- vessel[vessel$ID == unique(obs$vrnum),]$Pre_2008_ID
+        vrnum <- old.log.dat[old.log.dat$vesid == vesid,]
+        aftersail <- vrnum[(vrnum$date > unique(obs$date.sailed)) | (vrnum$date == unique(obs$date.sailed)),]
+        beforeland <- aftersail[(aftersail$date < unique(obs$date.land)) | (aftersail$date == unique(obs$date.land)),] 
+        trip.id <- as.character(unique(beforeland$trip.id))
+      }
+      
+      if(unique(year(obs$date.sailed)) > 2008) {
+        vrnum <- new.log.dat[new.log.dat$vrnum == unique(obs$vrnum),]
+        aftersail <- vrnum[(vrnum$fished > unique(obs$date.sailed)) | (vrnum$fished == unique(obs$date.sailed)),]
+        beforeland <- aftersail[(aftersail$fished < unique(obs$date.land)) | (aftersail$fished == unique(obs$date.land)),] 
+        trip.id <- as.character(unique(beforeland$trip.id))
+      }
+      if(length(trip.id) ==0){
+        message("This TRIP ID does not have a matching log record:")
+        print(unique(select(obs, trip, vrnum, date.sailed, date.land, comarea_id)))
+      }
     }  
   }
+  
+  # This TRIP ID does not have a matching log record:
+  #       trip        vrnum   date.sailed   date.land   comarea_id
+  # 11720 J12-0342B   5409    2012-07-27    2012-08-01  SF27A
+  
+  TRIP_IDs[is.na(TRIP_IDs$trip.id) &!is.na(TRIP_IDs$trip),]
+  TRIP_IDs[!is.na(TRIP_IDs$trip.id) & is.na(TRIP_IDs$trip),]
+  TRIP_IDs[is.na(TRIP_IDs$trip.id),]
+  TRIP_IDs[is.na(TRIP_IDs$trip),]
   
   ### warning messages are ok as long as:
   length(unique(TRIP_IDs$trip.id[!is.na(TRIP_IDs$trip.id)]))# is similar to:
   length(unique(TRIP_IDs$trip)) 
   dups2 <- data.frame(table(TRIP_IDs$trip))[data.frame(table(TRIP_IDs$trip))$Freq>1,]
   arrange(TRIP_IDs[TRIP_IDs$trip %in% dups2$Var1,], trip)
+  # 
+  # # 27       2007.6605.11 J07-0167
+  # # 28       2007.6605.40 J07-0167
+  # str(obs.trips[obs.trips$trip=="J07-0167",])
+  # old.log.dat[old.log.dat$vesid== 6605 & old.log.dat$date>"2007-06-13" & old.log.dat$date<"2007-06-30",]
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2007.6605.40",]
+  # 
+  # # 35       2008.6605.10 J08-0243
+  # # 36       2008.6605.42 J08-0243
+  # str(obs.trips[obs.trips$trip=="J08-0243",])
+  # old.log.dat[old.log.dat$vesid== 6605 & old.log.dat$date>"2008-06-24" & old.log.dat$date<"2008-07-10",]
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2008.6605.42",]
+  
+  # 47   2017.1516.440794 J17-0380
+  # 48   2017.1516.441188 J17-0380
+  str(obs.trips[obs.trips$trip=="J17-0380",])
+  new.log.dat[new.log.dat$vrnum== 1516 & new.log.dat$date>"2017-08-26" & new.log.dat$date<"2017-09-08",]
+  # Ok so this one is tricky. The observer trip spans 2 fishing trips. Keep an eye on it. 
+  
+  # # 49 2018.106605.465934 J18-0322
+  # # 50 2018.106605.467902 J18-0322
+  # str(obs.trips[obs.trips$trip=="J18-0322",])
+  # new.log.dat[new.log.dat$vrnum== 106605 & new.log.dat$date>"2018-09-01" & new.log.dat$date<"2018-09-19",]
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2018.106605.467902",]
+  # 
+  # # 51 2019.106605.506710 J19-0391
+  # # 52 2019.106605.507762 J19-0391
+  # str(obs.trips[obs.trips$trip=="J18-0322",])
+  # new.log.dat[new.log.dat$vrnum== 106605 & new.log.dat$date>"2018-09-01" & new.log.dat$date<"2018-09-19",]
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2018.106605.467902",]
+  # 
+  # # 53 2021.106605.547218 J21-0073
+  # # 54 2021.106605.548101 J21-0073
+  # str(obs.trips[obs.trips$trip=="J21-0073",])
+  # tail(new.log.dat[new.log.dat$vrnum== 106605 & new.log.dat$date>"2021-04-01" & new.log.dat$date<"2021-04-19",])
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2021.106605.548101",]
+  
+  # #              trip.id      trip
+  # # 1 2012.102056.311455  J12-0046
+  # # 2 2012.102056.311455  J12-0048
+  # str(obs.trips[obs.trips$trip=="J12-0046",])
+  # str(obs.trips[obs.trips$trip=="J12-0048",])
+  # new.log.dat[new.log.dat$vrnum== 102056 & new.log.dat$date>"2012-01-27" & new.log.dat$date<"2012-02-15",]
+  # # fine
+  # 
+  # # 3 2018.105736.465670  J18-0408
+  # # 4 2018.105736.465670  J18-0337
+  # str(obs.trips[obs.trips$trip=="J18-0408",])
+  # str(obs.trips[obs.trips$trip=="J18-0337",])
+  # new.log.dat[new.log.dat$vrnum== 105736 & new.log.dat$date>"2018-08-28" & new.log.dat$date<"2018-09-08",]
+  # # fine
+  
+  # 5 2018.106605.467902  J18-0322
+  # 6 2018.106605.467902 J18-0355A
+  # 7 2018.106605.467902 J18-0355B
+  str(obs.trips[obs.trips$trip=="J18-0322",])
+  str(obs.trips[obs.trips$trip=="J18-0355A",])
+  str(obs.trips[obs.trips$trip=="J18-0355B",])
+  #new.log.dat[new.log.dat$vrnum== 106605 & new.log.dat$date>"2018-09-01" & new.log.dat$date<"2018-10-05",] %>% View()
+  obs.trips[obs.trips$trip=="J18-0355A",]$date.land <- "2018-09-24"
+  obs.trips[obs.trips$trip=="J18-0355B",]$date.sailed <- "2018-09-24"
+  # 26C, 26B, 27A
+  
+  # 8 2019.106605.508926  J19-0434
+  # 9 2019.106605.508926  J19-0442
+  str(obs.trips[obs.trips$trip=="J19-0434",])
+  str(obs.trips[obs.trips$trip=="J19-0442",])
+  #new.log.dat[new.log.dat$vrnum== 106605 & new.log.dat$date>"2019-08-27" & new.log.dat$date<"2019-09-14",] %>% View()
+  obs.trips[obs.trips$trip=="J19-0434",]$date.land <- "2019-09-05"
+  obs.trips[obs.trips$trip=="J19-0442",]$date.sailed <- "2018-09-05"
+  
+  # str(obs.trips[obs.trips$trip=="J05-0179",])
+  # old.log.dat[old.log.dat$vesid==5736 & old.log.dat$date>"2005-06-19" & old.log.dat$date<"2005-07-14",]
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2005.5736.7",]
+  # 
+  # 
+  # str(obs.trips[obs.trips$trip=="J05-0198",])
+  # old.log.dat[old.log.dat$vesid==5457 & old.log.dat$date>"2005-06-29" & old.log.dat$date<"2005-07-15",]
+  # TRIP_IDs<-TRIP_IDs[!TRIP_IDs$trip.id=="2005.5457.12",]
+  
   dups3 <- data.frame(table(TRIP_IDs$trip.id))[data.frame(table(TRIP_IDs$trip.id))$Freq>1,]
   arrange(TRIP_IDs[TRIP_IDs$trip.id %in% dups3$Var1,], trip.id)
+  # no changes to TRIP_IDs needed
   
   ## join observer trip IDs to efforts
   effort_obs_new <- join(new.log.dat, TRIP_IDs, type="left")
@@ -189,19 +296,12 @@ if(fleet=="offshore"){
     }
   }
   
+  # obs.trips[obs.trips$trip=="J22-0160",]
+  # effort_obs[effort_obs$trip=="J22-0160" & !is.na(effort_obs$trip),]
+  # # OK because they switched areas!
+  
   length(checklist) == length(unique(obs.trips$trip))
   # must be true
-  
-  ## NOTE: deal with weird Q3 trips J18-0408 and J18-0337 with TRIP_ID 465670 (two observer trips for one trip ID). This doesn't require ISDB change.
-  # effort_obs <- effort_obs[!(effort_obs$sfa %in% "27A" & effort_obs$trip %in% "J18-0408"),]
-  # effort_obs <- effort_obs[!(effort_obs$trip %in% "J18-0408" & effort_obs$fished > "2018-09-07"),]
-  # table(effort_obs[effort_obs$trip %in% c("J18-0337"),]$sfa, 
-  #       effort_obs[effort_obs$trip %in% c("J18-0337"),]$fished)
-  # table(effort_obs[effort_obs$trip %in% c("J18-0408"),]$sfa, 
-  #       effort_obs[effort_obs$trip %in% c("J18-0408"),]$fished)
-  
-  # NOTE: deal with weird Q3 J18-0355 trip. We want to remove the A trip from the effort calculation since the log only had one trip (whereas ISDB had an A and B trip)
-  # effort_obs <- effort_obs[!(effort_obs$trip %in% "J18-0355A" & effort_obs$sfa=="27A"),]
   
   if(exists("old.log.dat")){vesidvrnum <- unique(effort_obs[,c("trip", "vrnum", "vesid")])}
   if(!exists("old.log.dat")){vesidvrnum <- unique(effort_obs[,c("trip", "vrnum")])}
@@ -306,6 +406,9 @@ fixed$data_fixed_trips
 fixed$hooksdata_fixed_trips
 
 discards <- dplyr::select(fixed$data_fixed, -COMAREA_ID)
+fixed <- checkdiscards(data=discards, hooksdata = hooks, 
+                       getdiscards_type = "getdiscards_long_detail", gethooks_type = "gethooks_long_detail", species="all",#species="PORBEAGLE,MACKEREL SHARK",
+                       fix=TRUE, output="same")
 #only take pntcd 2 after checking that there is an equal number of records in 2 and 3
 table(fixed$hooksdata_fixed$PNTCD_ID)[[1]]==table(fixed$hooksdata_fixed$PNTCD_ID)[[2]]
 hooks <- fixed$hooksdata_fixed[fixed$hooksdata_fixed$PNTCD_ID==2,]
@@ -367,6 +470,14 @@ set_coord$tripset <- as.character(paste0(set_coord$TRIP, ".", set_coord$SET_NO))
 discards_sets <- join(dplyr::select(set_coord[year(ymd(set_coord$LANDING_DATE)) %in% years,], -X), discards, by="tripset", type="full")
 hooks_sets <- join(dplyr::select(set_coord[year(ymd(set_coord$LANDING_DATE)) %in% years,], -X), hooks, by="tripset", type="full")
 
+# drop sets with no lat/lon so that you can use coordinates to id SFA (already done in obs_metadata!). Makes effort estimates easier later!
+discards_sets <- discards_sets[!is.na(discards_sets$LONGITUDE),]
+discards_sets <- discards_sets[!is.na(discards_sets$LATITUDE),]
+discards_sets <- discards_sets[!is.na(discards_sets$area),]
+hooks_sets <- hooks_sets[!is.na(hooks_sets$LONGITUDE),]
+hooks_sets <- hooks_sets[!is.na(hooks_sets$LATITUDE),]
+hooks_sets <- hooks_sets[!is.na(hooks_sets$area),]
+
 # get observed and total hooks by area by trip
 hooks_area_trip_obs <- arrange(ddply(.data=hooks_sets[hooks_sets$SOURCE==0,], .(TRIP, area, VESSEL_NAME),
                                      summarize,
@@ -387,7 +498,7 @@ if(!"vesid" %in% names(effort_sum)) names(effort_sum) <- c("TRIP", "year", "bank
 hooks_area_trip_na <- left_join(hooks_area_trip[is.na(hooks_area_trip$area),], effort_sum[, c("TRIP", "bank")])
 # careful with split trips that have NAs, impossible to attribute bank from log to specific set without lat/lon
 splits <- hooks_area_trip_na$TRIP[duplicated(hooks_area_trip_na$TRIP)]
-splits_na <- hooks_area_trip_na[hooks_area_trip_na$TRIP == splits,]
+splits_na <- hooks_area_trip_na[hooks_area_trip_na$TRIP %in% splits,]
 if(all(banks==c("GBa", "GBb"))) splits_na <- splits_na[1,] #assume GBa for these since they're going to be summed anyway
 if(!all(banks==c("GBa", "GBb"))) splits_na <- NULL
 hooks_area_trip_na <- rbind(hooks_area_trip_na[!hooks_area_trip_na$TRIP %in% splits,], splits_na)
@@ -411,10 +522,18 @@ hooks_area_trip <- hooks_area_trip %>%
   summarize(totalhooks=sum(totalhooks, na.rm=T), 
             obshooks=sum(obshooks, na.rm=T))
 
+hooks_area_trip$bank <- hooks_area_trip$area
+
 #do it again to deal with bad coords (trust logs over ISDB)
 hooks_area_trip <- left_join(hooks_area_trip, effort_sum)
-hooks_area_trip$area <- hooks_area_trip$bank
-  
+# 
+# hooks_area_trip[136:138,]
+# effort_sum[effort_sum$TRIP=="J11-0443",]
+#hooks_area_trip[hooks_area_trip$TRIP=="J11-0443",]
+# 
+# effort_sum[32,]
+# hooks_area_trip[hooks_area_trip$TRIP=="J07-0321",]
+
 hooks_area_trip <- hooks_area_trip %>%
   group_by(TRIP, area, VESSEL_NAME) %>%
   summarize(totalhooks=sum(totalhooks, na.rm=T), 
@@ -468,21 +587,21 @@ discards_area_trip_common <- arrange(ddply(.data=discards_sets[discards_sets$SOU
                                            summarize,
                                            totaldiscards = sum(`SUM(EST_DISCARD_WT)`, na.rm=T)), TRIP)
 
+discards_area_trip_common$bank <- discards_area_trip_common$area
 #do it again to deal with bad coords (trust logs over ISDB)
 discards_area_trip_common <- left_join(discards_area_trip_common, effort_sum)
-discards_area_trip_common$area <- discards_area_trip_common$bank
+# discards_area_trip_common$area <- discards_area_trip_common$bank
 
 discards_area_trip_common <- arrange(ddply(.data=discards_area_trip_common, .(TRIP, area, COMMON),
                                            summarize,
                                            totaldiscards = sum(totaldiscards)), TRIP)
 
-discards_area_trip_common[discards_area_trip_common$TRIP=="J25-0075",]
+#discards_area_trip_common[discards_area_trip_common$TRIP=="J25-0075",]
 
 # join discards and hooks
 discards_hooks_sum <- join(hooks_area_trip, discards_area_trip_common, type="left")
 names(discards_hooks_sum)[which(names(discards_hooks_sum)=="area")] <- "bank"
 discards_hooks_sum <- discards_hooks_sum[!is.na(discards_hooks_sum$TRIP),]
-
 
 # join to effort!
 discards_effort <- join(effort_sum, discards_hooks_sum, type="left")
@@ -573,6 +692,13 @@ discards_report$prophooks <- discards_report$obshooks/discards_report$totalhooks
 
 sort(names(discards_report))
 
+discards_report[grep(x=discards_report$TRIP,"J11"),c("TRIP", "bank","hm",'obshooks', "totalhooks", "prophooks", "COD(ATLANTIC)")]
+359 J22-0160  GBa  775.7160 0.4930514            38
+360 J22-0160  GBb  504.4440 0.4930514            38
+
+# if lat/lon in ISDB are NA, then drop the entire set, incl. hooks! use lat/lon to assign to sfa. match effort from log to observer trip within sfa?
+
+
 save(discards_report, file = paste0(direct, "data/discards_report_", species, "_", Sys.Date(), ".Rdata"))
 
 rm(discards_report)
@@ -624,7 +750,7 @@ monthly_eff <- discards_report %>%
   dplyr::summarize(obshooks = sum(obshooks, na.rm=T),
             totalhooks = sum(totalhooks, na.rm=T),
             obseffort = sum(hm, na.rm=T),
-            dplyr::across(species_cols, sum)) %>%
+            dplyr::across(all_of(species_cols), sum)) %>%
   ungroup() %>% as.data.frame()
 
 monthly_eff$prophooks <- monthly_eff$obshooks/monthly_eff$totalhooks
@@ -634,8 +760,8 @@ monthly_eff <- monthly_eff %>%
   mutate(across(species_cols, ~.x / prophooks)) %>%
   relocate(prophooks, .after = totalhooks)
 
-write.csv(x = monthly_eff, file = "C:/Users/keyserf/Documents/temp_data/alldiscards_2025-10-23.csv")
-
+write.csv(x = monthly_eff, file = "C:/Users/keyserf/Documents/temp_data/alldiscards_2025-03-20.csv")
+###STOPPED HERE!
 
 # Step 6: summarize fishing effort
 #gba 2017 7 2018 3

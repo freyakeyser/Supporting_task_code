@@ -1,13 +1,18 @@
 
-load("Y:/Offshore/Assessment/Data/Fishery_data/Summary/2025/OSAC_tidy_logs.RData") # Change to 2024or subset to only include up to 2024
+#load("Y:/Offshore/Assessment/Data/Fishery_data/Summary/2025/OSAC_tidy_logs.RData") # Change to 2024or subset to only include up to 2024
 #logs_and_fish(loc="offshore", get.local=T, direct="Y:/Offshore/Assessment/", year = 1981:2022)
-#fish.dat<-merge(new.log.dat,old.log.dat,all=T)
+new.log.dat <- read.csv("Y:/Offshore/Assessment/Data/Fishery_data/Logs/Compiled/2009-2022log_revisedMar182026.csv")
+old.log.dat <- read.csv("Y:/Offshore/Assessment/Data/Fishery_data/Logs/Compiled/1982-2008logcorrected.csv")
+fish.dat<-merge(new.log.dat,old.log.dat,all=T)
+
 
 require(sf)
 require(ggplot2)
 require(dplyr)
+require(rosettafish)
 github_folder <- "C:/Users/keyserf/Documents/GitHub/Assessment_fns" # Path to your Github folder
 output_path <- "C:/Users/keyserf/Documents/temp_data/" # Change to a local drive
+french <- F
 
 source(paste0(github_folder, "/Maps/github_spatial_import.R"))
 
@@ -87,8 +92,8 @@ lims <- foot[!is.na(foot$kg),] %>%
   st_bbox()
 
 
-if(french==T) nonGB$final <- nonGB$fr
-if(french==F) nonGB$final <- nonGB$lab_short
+# if(french==T) nonGB$final <- nonGB$fr
+# if(french==F) nonGB$final <- nonGB$lab_short
 
 source(paste0(github_folder, "/Maps/pectinid_projector_sf.R"))
 
@@ -198,8 +203,8 @@ lims <- foot[!is.na(foot$kg),] %>%
   st_bbox()
 
 
-if(french==T) nonGB$final <- nonGB$fr
-if(french==F) nonGB$final <- nonGB$lab_short
+# if(french==T) nonGB$final <- nonGB$fr
+# if(french==F) nonGB$final <- nonGB$lab_short
 
 source(paste0(github_folder, "/Maps/pectinid_projector_sf.R"))
 
@@ -315,8 +320,8 @@ lims <- foot[!is.na(foot$kg),] %>%
   st_bbox()
 
 
-if(french==T) nonGB$final <- nonGB$fr
-if(french==F) nonGB$final <- nonGB$lab_short
+# if(french==T) nonGB$final <- nonGB$fr
+# if(french==F) nonGB$final <- nonGB$lab_short
 
 source(paste0(github_folder, "/Maps/pectinid_projector_sf.R"))
 

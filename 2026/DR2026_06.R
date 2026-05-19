@@ -306,4 +306,8 @@ smgf_all <- smgf_all[(smgf_all$bank=="BBn" & smgf_all$year>1990) |
                      (smgf_all$bank=="Ger" & smgf_all$year>2007),]
 View(smgf_all)
 
+names(smgf_all) <- c("SFA", "Subarea", "Bank", "Year", "Pre-recruit biomass (t)", "Recruit biomass (t)", "Fully-recruited biomass (t)", 
+                     "Number of pre-recruits dead", "Number of recruits dead", "Number of fully-recruited dead",
+                     "Recruit growth rate", "Fully-recruited growth rate", "Relative fishing mortality")
+
 write.csv(x=smgf_all, file="Y:/Offshore/Data requests/2026/DR2026_06_Dal/SFA26_survey_growth_relF.csv")

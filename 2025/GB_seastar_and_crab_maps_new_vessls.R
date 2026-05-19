@@ -52,15 +52,15 @@ basemap <- pecjector(area = "GB",
 # This pulls in all the layers from the above location
 offshore.spa <- combo.shp(temp2,make.sf=T, quiet=T)
 gb.spa <- offshore.spa[offshore.spa$ID %in% c("SFA27A.shp", "SFA27B.shp"),]
-data.dir.wrangled <- "Y:/Offshore/Assessment/2025/Supporting_tasks/predators_on_GB/"
-years <- 2007:2025
+data.dir.wrangled <- "Y:/Offshore/Assessment/2026/Supporting_tasks/predators_on_GB/"
+years <- 2007:2026
 
 
 
 ######### Sea stars ###########
 # Connect to Oraclea
 cxn <- ROracle::dbConnect(DBI::dbDriver("Oracle"), un.ID, pwd.ID, "PTRAN")
-get_data(db="rv", cxn=cxn)
+get_data(db="rv", cxn=cxn, force.extract = T)
 # Lets pull ASTROPECTEN AND ASTERIAS SPECIES
 sea.stars <- c(grep("ASTERIAS",GSSPECIES$SPEC),grep("ASTROPECTEN",GSSPECIES$SPEC))
 
@@ -77,12 +77,12 @@ sppCounter_CAT <- aggregate(
 
 names(all.tmp) <- tolower(names(all.tmp))
 all.tmp <- all.tmp |> collapse::fsubset(!(is.na(longitude) | is.na(latitude)))
-all.new.vessel <- all.tmp |> collapse::fsubset(mission %in% c("CAR2025010", "CAR2025002","CAR2024010",
+all.new.vessel <- all.tmp |> collapse::fsubset(mission %in% c("CAB2026002", "CAR2025010", "CAR2025002","CAR2024010",
                                                               "CAB2024003","CAR2023011","CAR2023002",
                                                               "CAB2022010", "CAR2022102",
                                                               "CAR2021241","CAR2021240"))
 
-all <- all.tmp |> collapse::fsubset(!mission %in% c("CAR2025010", "CAR2025002","CAR2024010",
+all <- all.tmp |> collapse::fsubset(!mission %in% c("CAB2026002", "CAR2025010", "CAR2025002","CAR2024010",
                                                     "CAB2024003","CAR2023011","CAR2023002",
                                                     "CAB2022010", "CAR2022102",
                                                     "CAR2021241","CAR2021240"))
@@ -129,7 +129,7 @@ ss.ind.wgt.plt <- basemap + geom_sf(data=gb.ss.type.1.winter, aes(size=Ind.wgt),
 ss.nv.wgt.plt <- basemap + geom_sf(data=gb.nv.ss.all, aes(size=totwgt),pch=19,colour ="red") + facet_wrap(~year) + 
   ggtitle("ASTROPECTEN + ASTERIAS (new gear/vessel)") + xlim(c(-67.25,-65.6)) + ylim(c(41.12,42.3)) + labs(size = "Kg per tow") +
   theme(legend.position = "bottom",legend.direction = 'horizontal')
-save_plot("Y:/Offshore/Assessment/2025/Supporting_tasks/predators_on_GB/Seastars_wgt_spatial_2021_2025.png",ss.nv.wgt.plt,base_height = 8,base_width = 9)
+save_plot("Y:/Offshore/Assessment/2026/Supporting_tasks/predators_on_GB/Seastars_wgt_spatial_2021_2025.png",ss.nv.wgt.plt,base_height = 8,base_width = 9)
 
 ss.nv.num.plt <- basemap + geom_sf(data=gb.nv.ss.all, aes(size=totno),pch=19,colour ="blue") + facet_wrap(~year) + 
   ggtitle("ASTROPECTEN + ASTERIAS") + xlim(c(-67.25,-65.6)) + ylim(c(41.12,42.3))
@@ -161,13 +161,13 @@ sppCounter_CAT <- aggregate(
 
 names(all.crabs) <- tolower(names(all.crabs))
 all.crabs <- all.crabs |> collapse::fsubset(!(is.na(longitude) | is.na(latitude)))
-all.crab <- all.crabs |> collapse::fsubset(!mission %in% c("CAR2025010", "CAR2025002","CAR2024010",
+all.crab <- all.crabs |> collapse::fsubset(!mission %in% c("CAB2026002", "CAR2025010", "CAR2025002","CAR2024010",
                                                            "CAB2024003","CAR2023011","CAR2023002",
                                                            "CAB2022010", "CAR2022102",
                                                            "CAR2021241","CAR2021240"))
 # new vessels only
 
-all.nv.crab <- all.crabs |> collapse::fsubset(mission %in% c("CAR2025010", "CAR2025002","CAR2024010",
+all.nv.crab <- all.crabs |> collapse::fsubset(mission %in% c("CAB2026002", "CAR2025010", "CAR2025002","CAR2024010",
                                                              "CAB2024003","CAR2023011","CAR2023002",
                                                              "CAB2022010", "CAR2022102",
                                                              "CAR2021241","CAR2021240"))
@@ -208,7 +208,7 @@ crab.ind.wgt.plt <- basemap + geom_sf(data=gb.crab.type.1.winter, aes(size=Ind.w
 crab.nv.wgt.plt <- basemap + geom_sf(data=gb.nv.crab.all, aes(size=totwgt),pch=19,colour ="red") + facet_wrap(~year) + 
   ggtitle("Crab species (Cancer genus) on Georges Bank (new gear/vessel)") + xlim(c(-67.25,-65.6)) + ylim(c(41.12,42.3)) + labs(size = "Kg per tow") +
   theme(legend.position = "bottom",legend.direction = 'horizontal')
-save_plot("Y:/Offshore/Assessment/2025/Supporting_tasks/predators_on_GB/Crabs_wgt_spatial_2021_2025.png",crab.nv.wgt.plt,base_height = 8,base_width = 9)
+save_plot("Y:/Offshore/Assessment/2026/Supporting_tasks/predators_on_GB/Crabs_wgt_spatial_2021_2025.png",crab.nv.wgt.plt,base_height = 8,base_width = 9)
 
 
 crab.nv.num.plt <- basemap + geom_sf(data=gb.nv.crab.all, aes(size=totno),pch=19,colour ="blue") + facet_wrap(~year) + 
@@ -228,12 +228,12 @@ all.tow <- summarize_catches()
 names(all.tow) <- tolower(names(all.tow))
 
 all.tow <- all.tow |> collapse::fsubset(!(is.na(longitude) | is.na(latitude)))
-all.tows <- all.tow |> collapse::fsubset(!mission %in% c("CAR2025010", "CAR2025002","CAR2024010",
+all.tows <- all.tow |> collapse::fsubset(!mission %in% c("CAB2026002", "CAR2025010", "CAR2025002","CAR2024010",
                                                          "CAB2024003","CAR2023011","CAR2023002",
                                                          "CAB2022010", "CAR2022102",
                                                          "CAR2021241","CAR2021240"))
 
-all.nv.tows <- all.tow |> collapse::fsubset(mission %in% c("CAR2025010", "CAR2025002","CAR2024010",
+all.nv.tows <- all.tow |> collapse::fsubset(mission %in% c("CAB2026002", "CAR2025010", "CAR2025002","CAR2024010",
                                                            "CAB2024003","CAR2023011","CAR2023002",
                                                            "CAB2022010", "CAR2022102",
                                                            "CAR2021241","CAR2021240"))
@@ -274,6 +274,13 @@ mcss <- data.frame(year=missing.ss.years,ss.tows = rep(NA,length(missing.ss.year
 ss.tows <- rbind(ss.tows,mcss)
 ss.tows <- ss.tows[order(ss.tows$year),]
 
+gb.scal.type.1.winter <- gb.type.1.winter[gb.type.1.winter$comm=="SEA SCALLOP",]
+scal.tows <- as.data.frame(gb.scal.type.1.winter) |> collapse::fgroup_by(year) |> collapse::fsummarise(scal.tows = dplyr::n_distinct(paste0(mission, ".", setno)))
+missing.scal.years <- setdiff(years,scal.tows$year)
+mcscal <- data.frame(year=missing.scal.years,scal.tows = rep(NA,length(missing.scal.years)))
+scal.tows <- rbind(scal.tows,mcscal)
+scal.tows <- scal.tows[order(scal.tows$year),]
+
 crab.tows <- as.data.frame(gb.crab.type.1.winter) |> collapse::fgroup_by(year) |> collapse::fsummarise(crab.tows = dplyr::n_distinct(paste0(mission, ".", setno)))
 missing.crab.years <- setdiff(years,crab.tows$year)
 mcy <- data.frame(year=missing.crab.years,crab.tows = rep(NA,length(missing.crab.years)))
@@ -282,20 +289,29 @@ crab.tows <- crab.tows[order(crab.tows$year),]
 # Merge these together
 tow.data <- left_join(num.tows,crab.tows,by="year")
 tow.data <- left_join(tow.data,ss.tows,by="year")
+tow.data <- left_join(tow.data,scal.tows,by="year")
 
-tow.props <- data.frame(year = rep(min(tow.data$year):max(tow.data$year),2),name = c(rep("prop.crab",nrow(tow.data)),rep("prop.ss",nrow(tow.data))),
-                        prop = c(tow.data$crab.tows/tow.data$total.tows,tow.data$ss.tows/tow.data$total.tows))
+tow.props <- data.frame(year = rep(min(tow.data$year):max(tow.data$year),3),
+                        name = c(rep("prop.crab",nrow(tow.data)),
+                                 rep("prop.ss",nrow(tow.data)),
+                                 rep("prop.scal",nrow(tow.data))),
+                        prop = c(tow.data$crab.tows/tow.data$total.tows,
+                                 tow.data$ss.tows/tow.data$total.tows,
+                                 tow.data$scal.tows/tow.data$total.tows))
 # stack this for ggplot...
-tow.data.long <- pivot_longer(tow.data,cols = c("ss.tows","total.tows","crab.tows"))
+tow.data.long <- pivot_longer(tow.data,cols = c("ss.tows","total.tows","crab.tows", "scal.tows"))
 
 # Now make some figures...
 ggplot(tow.data.long) + geom_line(aes(x=year,y=value,group = name,color=name),size=1.5) + xlab("") + ylab("Number of tows") +
-  scale_color_manual(name="",values = c("blue","firebrick2","darkgrey"),labels=c("Crabs","Seastars","Total")) +ylim(c(0,60))
+  scale_color_manual(name="",values = c("blue","firebrick2","darkgrey", "forestgreen"),labels=c("Crabs","Seastars","Total", "Scallops"))
 
 ggplot(tow.props) + geom_line(aes(x=year,y=prop,group = name,color=name),size=1.5) + xlab("") + ylab("Proportion of tows") +
-  scale_color_manual(name="Species",values = c("blue","firebrick2"),labels=c("Crabs","Seastars")) + ylim(c(0,1))
+  scale_color_manual(name="Species",values = c("blue","firebrick2", "forestgreen"),labels=c("Crabs","Seastars", "Scallops")) + ylim(c(0,1))
 
 basemap + geom_sf(data=gb.type.1.winter) + facet_wrap(~year) + xlim(c(-67.25,-65.6)) + ylim(c(41.12,42.3)) 
+
+basemap + geom_sf(data=gb.type.1.winter) + facet_wrap(~year) + xlim(c(-67.25,-65.6)) + ylim(c(41.12,42.3)) +
+  geom_sf(data=gb.scal.type.1.winter, aes(size=totno), colour="red")
 
 # Let's get a simple index...
 tow.data$no.ss <- tow.data$total.tows - tow.data$ss.tows
@@ -329,11 +345,11 @@ for(i in yrs.w.dat)
 crab.fake.db <- matrix(data = NA,ncol = ncol(gb.crab.type.1.winter),nrow = nrow(crab.fake)+2)
 colnames(crab.fake.db) <- names(gb.crab.type.1.winter)
 crab.fake.db <- as.data.frame(crab.fake.db)
-crab.fake.db$year[1:2] <- c(2022,2025)
-crab.fake.db$year[!crab.fake.db$year %in% c(2022,2025)] <- crab.fake$year  
-crab.fake.db$totno[!crab.fake.db$year %in% c(2022,2025)] <- crab.fake$totno  
-crab.fake.db$totwgt[!crab.fake.db$year %in% c(2022,2025)] <- crab.fake$totwgt
-crab.fake.db$setno[!crab.fake.db$year %in% c(2022,2025)] <- crab.fake$setno
+crab.fake.db$year[1:3] <- c(2022,2025,2026)
+crab.fake.db$year[!crab.fake.db$year %in% c(2022,2025,2026)] <- crab.fake$year  
+crab.fake.db$totno[!crab.fake.db$year %in% c(2022,2025,2026)] <- crab.fake$totno  
+crab.fake.db$totwgt[!crab.fake.db$year %in% c(2022,2025,2026)] <- crab.fake$totwgt
+crab.fake.db$setno[!crab.fake.db$year %in% c(2022,2025,2026)] <- crab.fake$setno
 #seastars
 ss.fake.db <- matrix(data = NA,ncol = ncol(gb.ss.type.1.winter),nrow = nrow(ss.fake)+2)
 colnames(ss.fake.db) <- names(gb.ss.type.1.winter)
@@ -418,13 +434,21 @@ save_plot("Y:/Offshore/Assessment/2025/Supporting_tasks/predators_on_GB/Sea_star
 
 # Now can I get the number of tows in this domain each year...
 # And here are the number of unique tows on GB from the RV survey.
-years.nv <- 2021:2025
+years.nv <- 2021:2026
 gb.nv.all.tows <- gb.nv.all.tows[gb.nv.all.tows$year %in% years.nv,]
 num.tows <- as.data.frame(gb.nv.all.tows) |> collapse::fgroup_by(year) |> collapse::fsummarise(total.tows = dplyr::n_distinct(paste0(mission,".",setno)))
 missing.years <- setdiff(years.nv,num.tows$year)
 mis <- data.frame(year=missing.years,total.tows = rep(NA,length(missing.years)))
 num.tows <- rbind(num.tows,mis)
 num.tows <- num.tows[order(num.tows$year),]
+
+# how many observed scallops
+gb.nv.scal.tows <- gb.nv.all.tows[gb.nv.all.tows$comm == "SEA SCALLOP",]
+scal.tows <- as.data.frame(gb.nv.scal.tows) |> collapse::fgroup_by(year) |> collapse::fsummarise(scal.tows = dplyr::n_distinct(paste0(mission,".",setno)))
+missing.years <- setdiff(years.nv,scal.tows$year)
+mis <- data.frame(year=missing.years,scal.tows = rep(NA,length(missing.years)))
+scal.tows <- rbind(scal.tows,mis)
+scal.tows <- scal.tows[order(scal.tows$year),]
 
 # Now how many tows actually observed seastars or crabs
 gb.nv.ss.all <- gb.nv.ss.all |> collapse::fsubset(year %in% years.nv)
@@ -440,21 +464,28 @@ missing.crab.years <- setdiff(years.nv,crab.tows$year)
 mcy <- data.frame(year=missing.crab.years,crab.tows = rep(NA,length(missing.crab.years)))
 crab.tows <- rbind(crab.tows,mcy)
 crab.tows <- crab.tows[order(crab.tows$year),]
+
 # Merge these together
 tow.data <- left_join(num.tows,ss.tows, by="year")
 tow.data <- left_join(tow.data,crab.tows,by="year")
+tow.data <- left_join(tow.data,scal.tows,by="year")
 
-tow.props <- data.frame(year = rep(min(tow.data$year):max(tow.data$year),2),name = c(rep("prop.crab",nrow(tow.data)),rep("prop.ss",nrow(tow.data))),
-                        prop = c(tow.data$crab.tows/tow.data$total.tows,tow.data$ss.tows/tow.data$total.tows))
+tow.props <- data.frame(year = rep(min(tow.data$year):max(tow.data$year),3),
+                        name = c(rep("prop.crab",nrow(tow.data)),
+                                 rep("prop.ss",nrow(tow.data)),
+                                 rep("prop.scal",nrow(tow.data))),
+                        prop = c(tow.data$crab.tows/tow.data$total.tows,
+                                 tow.data$ss.tows/tow.data$total.tows,
+                                 tow.data$scal.tows/tow.data$total.tows))
 # stack this for ggplot...
-tow.data.long <- pivot_longer(tow.data,cols = c("ss.tows","total.tows","crab.tows"))
+tow.data.long <- pivot_longer(tow.data,cols = c("ss.tows","total.tows","crab.tows", "scal.tows"))
 
 # Now make some figures...
 ggplot(tow.data.long) + geom_line(aes(x=year,y=value,group = name,color=name),size=1.5) + xlab("") + ylab("Number of tows") +
-  scale_color_manual(name="",values = c("blue","firebrick2","darkgrey"),labels=c("Crabs","Seastars","Total")) +ylim(c(0,60))
+  scale_color_manual(name="",values = c("blue","firebrick2","darkgrey", "forestgreen"),labels=c("Crabs","Seastars","Total", "Scallops"))
 
 ggplot(tow.props) + geom_line(aes(x=year,y=prop,group = name,color=name),size=1.5) + xlab("") + ylab("Proportion of tows") +
-  scale_color_manual(name="Species",values = c("blue","firebrick2"),labels=c("Crabs","Seastars")) + ylim(c(0,1))
+  scale_color_manual(name="Species",values = c("blue","firebrick2", "forestgreen"),labels=c("Crabs","Seastars", "Scallops")) + ylim(c(0,1))
 
 
 
@@ -463,6 +494,7 @@ ggplot(tow.props) + geom_line(aes(x=year,y=prop,group = name,color=name),size=1.
 # Subtract number of tows with seastars (or crabs) from the total for the year to get the number of tows WITHOUT SS or crab
 tow.data$no.ss <- tow.data$total.tows - tow.data$ss.tows
 tow.data$no.crab <- tow.data$total.tows - tow.data$crab.tows
+tow.data$no.scal <- tow.data$total.tows - tow.data$scal.tows
 # Create an object with lots of 0s that I can add the the ss and crab data.
 # This isn't pretty but best my brain could come up with
 yrs.w.dat <- years.nv
@@ -478,15 +510,22 @@ for(i in yrs.w.dat)
                          totwgt = rep(0,tow.data$no.ss[tow.data$year == i]),
                          setno = 5000+(1:tow.data$no.ss[tow.data$year == i]))
   }
+  if(!is.na(tow.data$no.scal[tow.data$year==i])){
+    scal.tmp <- data.frame(year = i,totno = rep(0,tow.data$no.scal[tow.data$year == i]),
+                         totwgt = rep(0,tow.data$no.scal[tow.data$year == i]),
+                         setno = 5000+(1:tow.data$no.scal[tow.data$year == i]))
+  }
   if(i == 2021) 
   {
     crab.fake <- crab.tmp
     ss.fake <- ss.tmp
+    scal.fake <- scal.tmp
   }
   if(i > 2021) 
   {
     crab.fake <- rbind(crab.fake,crab.tmp)
     ss.fake <- rbind(ss.fake,ss.tmp)
+    scal.fake <- rbind(scal.fake,scal.tmp)
   }
 } 
 
@@ -507,6 +546,14 @@ ss.fake.db$year <- ss.fake$year
 ss.fake.db$totno <- ss.fake$totno  
 ss.fake.db$totwgt <- ss.fake$totwgt
 ss.fake.db$setno <- ss.fake$setno
+#scallops
+scal.fake.db <- matrix(data = NA,ncol = ncol(gb.nv.scal.tows),nrow = nrow(scal.fake))
+colnames(scal.fake.db) <- names(gb.nv.scal.tows)
+scal.fake.db <- as.data.frame(scal.fake.db)
+scal.fake.db$year <- scal.fake$year  
+scal.fake.db$totno <- scal.fake$totno  
+scal.fake.db$totwgt <- scal.fake$totwgt
+scal.fake.db$setno <- scal.fake$setno
 
 
 # Now stitch this into the crab and sea star data...
@@ -533,22 +580,38 @@ ss.ts <- ss.dat.4.index |> collapse::fgroup_by(year) |> collapse::fsummarise(mn.
 ss.count <- ss.dat.4.index |> collapse::fgroup_by(year) |> collapse::fcount()
 
 ss.ts$Species <- "Astropecten and Asterias Species"
+
+
+# scallop starts now...
+scal.dat.4.index <- rbind(data.frame(gb.nv.scal.tows),scal.fake.db)
+
+scal.ts <- scal.dat.4.index |> collapse::fgroup_by(year) |> collapse::fsummarise(mn.num = mean(totno,na.rm=T),
+                                                                             mn.wgt = mean(totwgt,na.rm=T),
+                                                                             sd.num = sd(totno,na.rm=T),
+                                                                             sd.wgt = sd(totwgt,na.rm=T),
+                                                                             med.num = median(totno,na.rm=T),
+                                                                             med.wgt = median(totwgt,na.rm=T))
+
+# Check that the counts are right..
+scal.count <- scal.dat.4.index |> collapse::fgroup_by(year) |> collapse::fcount()
+
+scal.ts$Species <- "Scallop"
 # Merge these together...
 pred.ts <- rbind(crab.ts,ss.ts)
+pred.ts <- rbind(pred.ts, scal.ts)
 
 # Now make the plots
 
 nv.pred.num <- ggplot(pred.ts) + geom_line(aes(x=year,y=mn.num,color=Species,group=Species),size=1.5) + 
   xlab("") + ylab("Mean Number per tow") + scale_y_log10() +
-  scale_color_manual(values=c("blue","firebrick2"))
-save_plot("Y:/Offshore/Assessment/2025/Supporting_tasks/predators_on_GB/Predators_num_ts_new_vessls.png",nv.pred.num,base_height = 8,base_width = 9)
-
+  scale_color_manual(values=c("blue","firebrick2", "forestgreen"))
+save_plot("Y:/Offshore/Assessment/2026/Supporting_tasks/predators_on_GB/Predators_num_ts_new_vessls.png",nv.pred.num,base_height = 8,base_width = 9)
 
 
 nv.pred.wgt <- ggplot(pred.ts) + geom_line(aes(x=year,y=mn.wgt,color=Species,group=Species),size=1.5) + 
   xlab("") + ylab("Mean Weight per tow (kg)") + scale_y_log10() +
-  scale_color_manual(values=c("blue","firebrick2"))
-save_plot("Y:/Offshore/Assessment/2025/Supporting_tasks/predators_on_GB/Predators_wgt_ts_new_vessls.png",nv.pred.wgt,base_height = 8,base_width = 9)
+  scale_color_manual(values=c("blue","firebrick2", "forestgreen"))
+save_plot("Y:/Offshore/Assessment/2026/Supporting_tasks/predators_on_GB/Predators_wgt_ts_new_vessls.png",nv.pred.wgt,base_height = 8,base_width = 9)
 
 
 

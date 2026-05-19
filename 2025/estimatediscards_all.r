@@ -436,12 +436,22 @@ if(fleet=="inshore"){
 
 # join the spatially checked obs_metadata stuff to assign bank to comarea_ids
 set_coord <- read.csv(paste0(direct, "data/Observed scallop trip metadata_tidysets_2026-03-11.csv"))
+#set_coord2 <- read.csv(paste0(direct, "data/Observed scallop trip metadata_tidy_2026-03-11.csv"))
 
 # do the manual edits from bycatchreport_7.R as needed
 # I.e. review Spatial checks.pdf and remove sets that are outside of your desired area. 
 set_coord <- set_coord[as.numeric(substr(set_coord$TRIP, start = 2, stop=3))>as.numeric(substr(years[1]-1, 3,4)),]
 set_coord <- set_coord[as.numeric(substr(set_coord$TRIP, start = 2, stop=3))<as.numeric(substr(max(years)+1, 3,4)),]
 set_coord$tripset <- paste0(set_coord$TRIP, "-",set_coord$SET_NO)
+# first, if the trip is not a split trip, but has NA coordinates for sets, assign the area for those sets
+notsplit <- effort_sum %>%
+  group_by(TRIP) %>%
+  summarize(banks = length(unique(bank))) %>%
+  filter(banks==1) %>%
+  ungroup() %>%
+  left_join(effort_sum) %>%
+  dplyr::select(TRIP, bank)
+
 badspatial <- set_coord[(set_coord$TRIP=="J14-0111" & set_coord$area=="SFA26A.shp"),]$tripset
 badspatial <- c(badspatial, set_coord[(set_coord$TRIP=="J14-0522" & set_coord$area=="SFA26B.shp"),]$tripset)
 badspatial <- c(badspatial, set_coord[(set_coord$TRIP=="J14-0587" & set_coord$area=="SFA26A.shp"),]$tripset)
@@ -470,18 +480,44 @@ set_coord$tripset <- as.character(paste0(set_coord$TRIP, ".", set_coord$SET_NO))
 discards_sets <- join(dplyr::select(set_coord[year(ymd(set_coord$LANDING_DATE)) %in% years,], -X), discards, by="tripset", type="full")
 hooks_sets <- join(dplyr::select(set_coord[year(ymd(set_coord$LANDING_DATE)) %in% years,], -X), hooks, by="tripset", type="full")
 
-# drop sets with no lat/lon so that you can use coordinates to id SFA (already done in obs_metadata!). Makes effort estimates easier later!
-discards_sets <- discards_sets[!is.na(discards_sets$LONGITUDE),]
-discards_sets <- discards_sets[!is.na(discards_sets$LATITUDE),]
+# drop sets with no lat/lon that are part of split trips, so that you can use coordinates to id SFA (already done in obs_metadata!). Makes effort estimates easier later!
+discards_sets <- left_join(discards_sets, notsplit)
+discards_sets$area[!is.na(discards_sets$bank)] <- discards_sets$bank[!is.na(discards_sets$bank)]
 discards_sets <- discards_sets[!is.na(discards_sets$area),]
-hooks_sets <- hooks_sets[!is.na(hooks_sets$LONGITUDE),]
-hooks_sets <- hooks_sets[!is.na(hooks_sets$LATITUDE),]
+discards_sets <- dplyr::select(discards_sets, -bank)
+
+hooks_sets <- left_join(hooks_sets, notsplit)
+hooks_sets$area[!is.na(hooks_sets$bank)] <- hooks_sets$bank[!is.na(hooks_sets$bank)]
 hooks_sets <- hooks_sets[!is.na(hooks_sets$area),]
+hooks_sets <- dplyr::select(hooks_sets, -bank, -COMAREA_ID)
+
+#use bank for area
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA27A.shp", replacement = "GBa")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA27B.shp", replacement = "GBb")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA26A.shp", replacement = "BBn")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA26B.shp", replacement = "BBs")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA26C.shp", replacement = "Ger")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA25A.shp", replacement = "SabMid")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA25B.shp", replacement = "Ban")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA10.shp", replacement = "SPB")
+hooks_sets$area <- gsub(x=hooks_sets$area, pattern = "SFA11.shp", replacement = "SPB")
+
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA27A.shp", replacement = "GBa")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA27B.shp", replacement = "GBb")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA26A.shp", replacement = "BBn")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA26B.shp", replacement = "BBs")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA26C.shp", replacement = "Ger")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA25A.shp", replacement = "SabMid")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA25B.shp", replacement = "Ban")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA10.shp", replacement = "SPB")
+discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA11.shp", replacement = "SPB")
 
 # get observed and total hooks by area by trip
-hooks_area_trip_obs <- arrange(ddply(.data=hooks_sets[hooks_sets$SOURCE==0,], .(TRIP, area, VESSEL_NAME),
-                                     summarize,
-                                     obshooks = sum(TOTAL_HOOKS, na.rm=T)), TRIP)
+hooks_area_trip_obs <- hooks_sets[hooks_sets$SOURCE==0,] %>%
+  group_by(TRIP, area, VESSEL_NAME) %>%
+  summarize(obshooks = sum(TOTAL_HOOKS, na.rm=T)) %>%
+  arrange(TRIP)
+  
 hooks_area_trip_tot <- arrange(ddply(.data=hooks_sets, .(TRIP, area, VESSEL_NAME),
                                      summarize,
                                      totalhooks = sum(TOTAL_HOOKS, na.rm=T)), TRIP)
@@ -505,17 +541,6 @@ hooks_area_trip_na <- rbind(hooks_area_trip_na[!hooks_area_trip_na$TRIP %in% spl
 hooks_area_trip <- left_join(hooks_area_trip, hooks_area_trip_na)
 hooks_area_trip$area[is.na(hooks_area_trip$area)] <- hooks_area_trip$bank[is.na(hooks_area_trip$area)]
 hooks_area_trip <- dplyr::select(hooks_area_trip, -bank)
-
-#use bank for area
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA27A.shp", replacement = "GBa")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA27B.shp", replacement = "GBb")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA26A.shp", replacement = "BBn")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA26B.shp", replacement = "BBs")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA26C.shp", replacement = "Ger")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA25A.shp", replacement = "SabMid")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA25B.shp", replacement = "Ban")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA10.shp", replacement = "SPB")
-hooks_area_trip$area <- gsub(x=hooks_area_trip$area, pattern = "SFA11.shp", replacement = "SPB")
 
 hooks_area_trip <- hooks_area_trip %>%
   group_by(TRIP, area, VESSEL_NAME) %>%
@@ -547,32 +572,21 @@ discards_sets <- left_join(discards_sets, discards_sets_na)
 discards_sets[discards_sets$tripset %in% discards_sets_na$tripset,]$area <- discards_sets[discards_sets$tripset %in% discards_sets_na$tripset,]$bank
 discards_sets <- dplyr::select(discards_sets, -bank)
 
-# use bank for area
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA27A.shp", replacement = "GBa")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA27B.shp", replacement = "GBb")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA26A.shp", replacement = "BBn")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA26B.shp", replacement = "BBs")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA26C.shp", replacement = "Ger")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA25A.shp", replacement = "SabMid")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA25B.shp", replacement = "Ban")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA10.shp", replacement = "SPB")
-discards_sets$area <- gsub(x=discards_sets$area, pattern = "SFA11.shp", replacement = "SPB")
-
 # Map for Heather
 #discards_sets
 ## get EEZ
-tem <- tempfile()
-download.file("https://raw.githubusercontent.com/Mar-scal/GIS_layers/master/EEZ/EEZ.zip",tem)
-tem2 <- tempfile()
-unzip(zipfile = tem,exdir = tem2)
-eez.CAN <- sf::st_read(paste0(tem2,"/EEZ.shp"))
-rm(tem,tem2)
-##land layer
-land.all <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf",continent = "North America")
-require(sf)
-discards_sf <- st_as_sf(x = discards_sets, coords=c(X="LONGITUDE", Y="LATITUDE"), crs=4326)
-
-require(ggplot2)
+# tem <- tempfile()
+# download.file("https://raw.githubusercontent.com/Mar-scal/GIS_layers/master/EEZ/EEZ.zip",tem)
+# tem2 <- tempfile()
+# unzip(zipfile = tem,exdir = tem2)
+# eez.CAN <- sf::st_read(paste0(tem2,"/EEZ.shp"))
+# rm(tem,tem2)
+# ##land layer
+# land.all <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf",continent = "North America")
+# require(sf)
+# discards_sf <- st_as_sf(x = discards_sets, coords=c(X="LONGITUDE", Y="LATITUDE"), crs=4326)
+# 
+# require(ggplot2)
 #png("Y:/Bycatch/requests/Porbeagle_DFO/Map_OffshoreScallop_Porbeagle.png", res =  400, height=3, width=4.5, units="in")
 # ggplot() + 
 #   geom_sf(data=eez.CAN, colour="lightblue")+
@@ -640,6 +654,7 @@ if(length(discards_effort_2_lost)>0){
   }
   discards_effort_2_keep <- discards_effort_2[!discards_effort_2$TRIP %in% lost$TRIP,]
   discards_effort <- full_join(discards_effort_2_keep, lost)
+  discards_effort <- discards_effort[!is.na(discards_effort$hm),]
 }
 #if(dim(discards_effort)[1] < dim(discards_effort_2)[1]) print("may be missing logs, unless you know that the ISDB contains more trips than you're doing in this report.")
 
@@ -692,18 +707,16 @@ discards_report$prophooks <- discards_report$obshooks/discards_report$totalhooks
 
 sort(names(discards_report))
 
-discards_report[grep(x=discards_report$TRIP,"J11"),c("TRIP", "bank","hm",'obshooks', "totalhooks", "prophooks", "COD(ATLANTIC)")]
-359 J22-0160  GBa  775.7160 0.4930514            38
-360 J22-0160  GBb  504.4440 0.4930514            38
+#discards_report[grep(x=discards_report$TRIP,"J19"),c("TRIP", 'obshooks', "totalhooks", "prophooks", "COD(ATLANTIC)")]
+#J23-0
 
 # if lat/lon in ISDB are NA, then drop the entire set, incl. hooks! use lat/lon to assign to sfa. match effort from log to observer trip within sfa?
-
 
 save(discards_report, file = paste0(direct, "data/discards_report_", species, "_", Sys.Date(), ".Rdata"))
 
 rm(discards_report)
 
-load(paste0(direct, "data/discards_report_", species, "_", Sys.Date(), ".Rdata"))
+load(paste0(direct, "data/discards_report_", species, "_2026-04-10.Rdata"))
 
 # This should be pretty close to accurate. It takes some information from fishery logs to fill in bad lat/lons. 
 
@@ -746,12 +759,12 @@ species_cols <- names(discards_report)[which(!names(discards_report) %in% c("VES
 ggplot() + geom_point(data=discards_report, aes(date.sailed, `ASTEROIDEA S.C.`))
 
 monthly_eff <- discards_report %>%
-  dplyr::group_by(year, month, bank) %>%
+  dplyr::group_by(year, month) %>%
   dplyr::summarize(obshooks = sum(obshooks, na.rm=T),
             totalhooks = sum(totalhooks, na.rm=T),
             obseffort = sum(hm, na.rm=T),
             dplyr::across(all_of(species_cols), sum)) %>%
-  ungroup() %>% as.data.frame()
+  dplyr::ungroup() %>% as.data.frame()
 
 monthly_eff$prophooks <- monthly_eff$obshooks/monthly_eff$totalhooks
 
@@ -760,7 +773,7 @@ monthly_eff <- monthly_eff %>%
   mutate(across(species_cols, ~.x / prophooks)) %>%
   relocate(prophooks, .after = totalhooks)
 
-write.csv(x = monthly_eff, file = "C:/Users/keyserf/Documents/temp_data/alldiscards_2025-03-20.csv")
+write.csv(x = monthly_eff, file = "C:/Users/keyserf/Documents/temp_data/alldiscards_2025-04-10.csv")
 ###STOPPED HERE!
 
 # Step 6: summarize fishing effort

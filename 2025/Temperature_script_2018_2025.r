@@ -6,9 +6,9 @@ source("C:/Users/keyserf/Documents/Github/Assessment_fns/Survey_and_OSAC/olex_ch
 #rbind track files (.log) in a directory and add tow
 
 
-file.locs <- readxl::read_xlsx("Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/logbook_locations__and_offsets_2018_2025.xlsx",sheet=1)
+file.locs <- readxl::read_xlsx("Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/logbook_locations__and_offsets_2018_2026.xlsx",sheet=1)
 
-file.locs <- file.locs[file.locs$Year==2025,]
+file.locs <- file.locs[file.locs$Year==2026,]
 
 # Now we do the analysis, going one row at a time.
 tow.data <- NULL
@@ -29,12 +29,12 @@ for(i in 1:nrow(file.locs))
   {
     if(dat$Bank %in% c("GBa", "GBb", "BBn", "Ger", "GB")) {
       olex.tst <- olex_import(filename=dat$tow_files, 
-                              UTM = 32619, earliest="2025-05-01", latest="2025-09-15", type="sf",
+                              UTM = 32619, earliest="2026-05-01", latest="2026-09-15", type="sf",
                               tow_number_key = dat$tow_order)
     }
     if(!dat$Bank %in% c("GBa", "GBb", "BBn", "Ger", "GB")) {
       olex.tst <- olex_import(filename=dat$tow_files, 
-                              UTM = 32620, earliest="2025-05-01", latest="2025-09-01", type="sf",
+                              UTM = 32620, earliest="2026-05-01", latest="2026-09-01", type="sf",
                               tow_number_key = dat$tow_order)
     }
        
@@ -65,13 +65,13 @@ for(i in 1:nrow(file.locs))
 # tow.data[[32]]$end_atz[5:15] <- tow.data[[32]]$end_atz[5:15] + lubridate::days(1)
 
 # Save this because it takes forever to run!
-#saveRDS(tow.data,file="Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/Tow_locations_and_time.Rds")
-tow.data <- readRDS(file="Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/Tow_locations_and_time.Rds")
+#saveRDS(tow.data,file="Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/Tow_locations_and_time.Rds")
+tow.data <- readRDS(file="Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/Tow_locations_and_time.Rds")
 
 #Checking if the tow numbers are in chronological order
 
 # Next lets pull in all the temperature data we have, I'll take that data and make it a long
-yrs <- c(2025)
+yrs <- c(2026)
 temperature.path <- "Y:/Offshore/Assessment/Data/Survey_data/"
 temp.dat <- NULL
 for(y in yrs)
@@ -93,9 +93,9 @@ temperature.data <- do.call("rbind",temp.dat)
 names(temperature.data) <- c("date","time","t_deg_c")
 temperature.data$time <- ymd_hms(paste(temperature.data$date,temperature.data$time),tz = "Canada/Atlantic")
 # This also takes a minute remotely, so save this crap
-#saveRDS(temperature.data,file="Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/all_temp_data.Rds")
+#saveRDS(temperature.data,file="Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/all_temp_data.Rds")
 
-temperature.data <- readRDS(file="Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/all_temp_data.Rds")
+temperature.data <- readRDS(file="Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/all_temp_data.Rds")
 #write.csv(temperature.data,"D:/testing_folder/Model_testing/Data/temperature_data.csv") # There is too much data for excel!
 
 
@@ -153,14 +153,12 @@ ggplot() + geom_point(data=temp.res, aes(ymd_hms(start_atz), temperature)) +
   facet_wrap(~bank, scale="free")
 
 
-#write.csv(temp.res,"Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/cleaned_temperature_data_2025.csv")
-temp.res <- read.csv("Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/cleaned_temperature_data_2025.csv")
+#write.csv(temp.res,"Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/cleaned_temperature_data_2026.csv")
+temp.res <- read.csv("Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/cleaned_temperature_data_2026.csv")
 
 
 # Load in the entire dataset which I cleaned up externally.  The 2015-2017 data was pulled from the Database and cleaned seperately as well.
-write.csv(x = temp.res,"Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/cleaned_temperature_data_2025.csv")
+write.csv(x = temp.res,"Y:/Offshore/Assessment/2026/Supporting_tasks/temperature/cleaned_temperature_data_2026.csv")
 
-temp.dat <- read.csv("Y:/Offshore/Assessment/2025/Supporting_tasks/temperature/temperature2025.csv")
-
-ggplot(temp.dat) + geom_text(aes(x=year,y=temperature,label=tow),size=4) + facet_wrap(~bank)
+ggplot(temp.res) + geom_text(aes(x=year,y=temperature,label=tow),size=4) + facet_wrap(~bank)
 
